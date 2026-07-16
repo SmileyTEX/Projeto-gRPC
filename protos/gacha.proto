@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package gacha;
+
+// Serviço remoto de um Gacha Game simples.
+// O cliente invoca personagens, lista a coleção e evolui personagens obtidos.
+service GachaService {
+  // Sorteia (invoca) um personagem aleatório e o adiciona à coleção.
+  rpc InvocarPersonagem (InvocarRequest) returns (InvocarResponse);
+
+  // Lista todos os personagens já obtidos pelo jogador.
+  rpc ListarPersonagens (ListarRequest) returns (ListarResponse);
+
+  // Aumenta o nível de um personagem existente na coleção.
+  rpc EvoluirPersonagem (EvoluirRequest) returns (EvoluirResponse);
+}
+
+// Entidade de domínio: personagem do gacha (mensagem composta).
+message Personagem {
+  int32 id = 1;
+  string nome = 2;
+  string raridade = 3;   // Comum, Raro, Épico, Lendário
+  string elemento = 4;   // Fogo, Água, Terra, Ar, Luz, Trevas
+  int32 nivel = 5;
+}
+
+message InvocarRequest {
+  // Reservado para expansões futuras (ex.: quantidade de invocações).
+}
+
+message InvocarResponse {
+  Personagem personagem = 1;
+  string mensagem = 2;
+}
+
+message ListarRequest {
+  // Lista a coleção completa; filtros podem ser adicionados depois.
+}
+
+message ListarResponse {
+  repeated Personagem personagens = 1;
+  int32 total = 2;
+}
+
+message EvoluirRequest {
+  int32 id = 1;
+}
+
+message EvoluirResponse {
+  Personagem personagem = 1;
+  string mensagem = 2;
+  bool sucesso = 3;
+}
