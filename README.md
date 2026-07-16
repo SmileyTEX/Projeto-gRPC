@@ -126,39 +126,4 @@ Para um serviço interno entre processos (cliente ↔ servidor do gacha):
 | Chamadas       | `POST /personagens` etc. | RPCs com nomes claros (`InvocarPersonagem`)  |
 | Serialização   | Texto (JSON)             | Binária (Protobuf), mais eficiente           |
 
-## Apresentação
 
-Os quatro pontos pedidos na atividade estão nos slides:
-
-| Arquivo              | Como usar                                      |
-|----------------------|------------------------------------------------|
-| `apresentacao.html`  | Abrir no navegador · `F` tela cheia · setas    |
-| `apresentacao.pptx`  | Abrir no PowerPoint ou Google Slides           |
-
-Para regenerar o PowerPoint:
-
-```bash
-pip install python-pptx
-python gerar_apresentacao_pptx.py
-```
-
-### Pontos da apresentação
-
-1. **Por que o contrato foi assim** — entidade composta `Personagem`, RPCs com nomes do domínio, request/response separados.
-2. **Como ocorre a comunicação** — canal gRPC, stub, serialização Protobuf, servidor em memória.
-3. **Arquivos gerados** — `gacha_pb2.py` e `gacha_pb2_grpc.py`.
-4. **Vantagens do gRPC vs REST** — tipagem, geração de código, eficiência e chamadas RPC explícitas.
-
-## Problemas comuns
-
-**Erro: `Failed to bind to address ...:50051`**
-
-A porta já está em uso (outro `server.py` aberto). Feche o processo antigo ou o terminal correspondente e tente de novo.
-
-**Cliente não conecta**
-
-Confirme que o servidor está rodando antes de iniciar o cliente.
-
-## Autores
-
-Projeto acadêmico — disciplina de sistemas distribuídos / gRPC.
