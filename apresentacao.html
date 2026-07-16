@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gacha Game — Apresentação gRPC</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e8eef6;
+      --muted: #9aacc0;
+      --accent: #3d9cf0;
+      --accent-soft: rgba(61, 156, 240, 0.15);
+      --border: #2a3a4f;
+      --ok: #5ecf8a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "Candara", sans-serif;
+      overflow: hidden;
+    }
+
+    .deck {
+      height: 100%;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      height: 100%;
+      padding: 4.5rem 5rem 5rem;
+      flex-direction: column;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse at top right, rgba(61, 156, 240, 0.08), transparent 45%),
+        radial-gradient(ellipse at bottom left, rgba(94, 207, 138, 0.05), transparent 40%),
+        var(--bg);
+    }
+
+    .slide.active { display: flex; }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      max-width: 18ch;
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      max-width: 22ch;
+    }
+
+    .lead {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 42ch;
+      line-height: 1.5;
+    }
+
+    ul {
+      list-style: none;
+      display: grid;
+      gap: 0.9rem;
+      max-width: 52rem;
+    }
+
+    ul li {
+      position: relative;
+      padding-left: 1.4rem;
+      font-size: 1.2rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    ul li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    ul li strong { color: #fff; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      max-width: 56rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.4rem;
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      color: var(--accent);
+      margin-bottom: 0.55rem;
+    }
+
+    .card p, .card li {
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .card ul { gap: 0.5rem; }
+    .card ul li { font-size: 1.05rem; color: var(--muted); padding-left: 1.1rem; }
+    .card ul li::before { width: 0.4rem; height: 0.4rem; top: 0.55em; }
+
+    .code {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.4rem;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      color: #c9dff5;
+      max-width: 48rem;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      border: 1px solid rgba(61, 156, 240, 0.35);
+      color: var(--text);
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .arrow {
+      color: var(--accent);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .files {
+      display: grid;
+      gap: 1rem;
+      max-width: 48rem;
+    }
+
+    .file {
+      display: grid;
+      grid-template-columns: 14rem 1fr;
+      gap: 1rem;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+    }
+
+    .file code {
+      color: var(--ok);
+      font-family: Consolas, monospace;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .file span {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.4;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      max-width: 56rem;
+    }
+
+    .compare .card h3 { font-size: 1.2rem; }
+    .compare .rest h3 { color: #f0a35d; }
+    .compare .grpc h3 { color: var(--ok); }
+
+    .footer-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 1.5rem;
+      background: rgba(15, 20, 25, 0.85);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      font-size: 0.9rem;
+      color: var(--muted);
+      z-index: 10;
+    }
+
+    .hint kbd {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.1rem 0.4rem;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent);
+      z-index: 11;
+      transition: width 0.2s ease;
+    }
+
+    @media (max-width: 900px) {
+      .slide { padding: 3rem 1.5rem 4.5rem; }
+      .grid-2, .compare, .file { grid-template-columns: 1fr; }
+      h1, h2 { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <div class="deck" id="deck">
+    <!-- 1 -->
+    <section class="slide active">
+      <p class="eyebrow">Projeto gRPC · Python</p>
+      <h1>Gacha Game</h1>
+      <p class="lead">
+        Sistema distribuído com comunicação remota via gRPC e contrato em Protocol Buffers.
+      </p>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide">
+      <p class="eyebrow">Escopo</p>
+      <h2>O que construímos</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Entidade</h3>
+          <ul>
+            <li><strong>Personagem</strong></li>
+            <li>nome, raridade, elemento, nível</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Operações remotas</h3>
+          <ul>
+            <li>InvocarPersonagem</li>
+            <li>ListarPersonagens</li>
+            <li>EvoluirPersonagem</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide">
+      <p class="eyebrow">Pergunta 1</p>
+      <h2>Por que o contrato foi definido assim?</h2>
+      <ul>
+        <li><strong>Uma mensagem composta</strong> (<code>Personagem</code>) concentra os atributos do domínio.</li>
+        <li><strong>RPCs com nomes do jogo</strong> deixam a intenção clara: invocar, listar, evoluir.</li>
+        <li><strong>Request/Response separados</strong> facilitam evoluir o serviço sem quebrar o cliente.</li>
+        <li><strong>Contrato único (.proto)</strong> compartilhado por cliente e servidor reduz inconsistências.</li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide">
+      <p class="eyebrow">Contrato</p>
+      <h2>Exemplo do .proto</h2>
+      <div class="code">service GachaService {
+  rpc InvocarPersonagem (InvocarRequest)
+      returns (InvocarResponse);
+  rpc ListarPersonagens (ListarRequest)
+      returns (ListarResponse);
+  rpc EvoluirPersonagem (EvoluirRequest)
+      returns (EvoluirResponse);
+}
+
+message Personagem {
+  int32  id = 1;
+  string nome = 2;
+  string raridade = 3;
+  string elemento = 4;
+  int32  nivel = 5;
+}</div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide">
+      <p class="eyebrow">Pergunta 2</p>
+      <h2>Como ocorre a comunicação?</h2>
+      <div class="flow">
+        <div class="pill">Cliente</div>
+        <span class="arrow">→</span>
+        <div class="pill">Canal gRPC</div>
+        <span class="arrow">→</span>
+        <div class="pill">Servidor</div>
+        <span class="arrow">→</span>
+        <div class="pill">Resposta Protobuf</div>
+      </div>
+      <ul style="margin-top: 1.75rem;">
+        <li>Cliente abre canal para <strong>localhost:50051</strong>.</li>
+        <li>Usa o <strong>stub</strong> gerado como se chamasse uma função local.</li>
+        <li>Mensagem é serializada em <strong>Protobuf</strong> e enviada ao servidor.</li>
+        <li>Servidor processa (memória) e devolve uma resposta tipada.</li>
+      </ul>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide">
+      <p class="eyebrow">Arquitetura</p>
+      <h2>Papéis no sistema</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>server.py</h3>
+          <ul>
+            <li>Implementa o serviço</li>
+            <li>Mantém a coleção em memória</li>
+            <li>Aplica regras (sorteio, evolução)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>client.py</h3>
+          <ul>
+            <li>Menu por linha de comando</li>
+            <li>Chama os RPCs remotos</li>
+            <li>Exibe as respostas ao usuário</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide">
+      <p class="eyebrow">Pergunta 3</p>
+      <h2>Arquivos gerados automaticamente</h2>
+      <div class="files">
+        <div class="file">
+          <code>gacha_pb2.py</code>
+          <span>Classes das mensagens: Personagem, requests e responses.</span>
+        </div>
+        <div class="file">
+          <code>gacha_pb2_grpc.py</code>
+          <span>Stubs do cliente e base do servidor (GachaServiceStub / Servicer).</span>
+        </div>
+      </div>
+      <p class="lead" style="margin-top: 1.5rem; font-size: 1.1rem;">
+        Gerados a partir de <strong>gacha.proto</strong> com <code>python generate_stubs.py</code>. Não se edita à mão.
+      </p>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide">
+      <p class="eyebrow">Pergunta 4</p>
+      <h2>gRPC × REST neste cenário</h2>
+      <div class="compare">
+        <div class="card rest">
+          <h3>API REST</h3>
+          <ul>
+            <li>Rotas HTTP + JSON</li>
+            <li>Contrato mais informal</li>
+            <li>Bom para APIs públicas na web</li>
+          </ul>
+        </div>
+        <div class="card grpc">
+          <h3>gRPC (nossa escolha)</h3>
+          <ul>
+            <li>Contrato tipado no .proto</li>
+            <li>Código gerado automaticamente</li>
+            <li>Chamadas RPC explícitas</li>
+            <li>Serialização binária eficiente</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide">
+      <p class="eyebrow">Vantagens</p>
+      <h2>Por que gRPC faz sentido aqui?</h2>
+      <ul>
+        <li><strong>Serviço interno entre processos</strong> — não precisamos de URLs REST para cada ação.</li>
+        <li><strong>Operações com nomes claros</strong> — InvocarPersonagem é mais direto que POST /personagens.</li>
+        <li><strong>Menos boilerplate</strong> — stubs gerados evitam serializar/deserializar JSON à mão.</li>
+        <li><strong>Contrato versionável</strong> — mudanças no domínio partem do .proto.</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide">
+      <p class="eyebrow">Encerramento</p>
+      <h2>Resumo</h2>
+      <ul>
+        <li>Contrato centrado na entidade <strong>Personagem</strong> e 3 RPCs do gacha.</li>
+        <li>Cliente e servidor se comunicam por canal gRPC + Protobuf.</li>
+        <li>Arquivos gerados: <strong>gacha_pb2.py</strong> e <strong>gacha_pb2_grpc.py</strong>.</li>
+        <li>gRPC traz tipagem, geração de código e eficiência para este cenário.</li>
+      </ul>
+      <p class="lead" style="margin-top: 1.75rem;">Obrigado — dúvidas?</p>
+    </section>
+  </div>
+
+  <div class="footer-bar">
+    <span>Gacha Game · gRPC + Protocol Buffers</span>
+    <span class="hint">
+      <kbd>←</kbd> <kbd>→</kbd> ou clique · <kbd>F</kbd> tela cheia ·
+      <span id="counter">1 / 10</span>
+    </span>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const counter = document.getElementById("counter");
+    const progress = document.getElementById("progress");
+    let index = 0;
+
+    function show(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach((s, n) => s.classList.toggle("active", n === index));
+      counter.textContent = `${index + 1} / ${slides.length}`;
+      progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+    }
+
+    function next() { show(index + 1); }
+    function prev() { show(index - 1); }
+
+    document.addEventListener("keydown", (e) => {
+      if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) {
+        e.preventDefault();
+        next();
+      } else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) {
+        e.preventDefault();
+        prev();
+      } else if (e.key === "Home") {
+        show(0);
+      } else if (e.key === "End") {
+        show(slides.length - 1);
+      } else if (e.key.toLowerCase() === "f") {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
+      }
+    });
+
+    document.getElementById("deck").addEventListener("click", (e) => {
+      const mid = window.innerWidth / 2;
+      if (e.clientX >= mid) next();
+      else prev();
+    });
+
+    show(0);
+  </script>
+</body>
+</html>
